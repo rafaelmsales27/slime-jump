@@ -35,7 +35,11 @@ window.addEventListener('load', function () {
     update() {
       this.y += this.speedY;
       if(this.game.keys.includes('ArrowUp')) {
-        this.speedY = -10; //TODO implement jump
+        this.speedY = -10; 
+        //TODO implement jump
+        // rembember to make jump not floaty 
+        // make game remember if player have pressed jump right before touching the ground 
+        // and execute jump right after it touches the ground. 
       }
     }
 
