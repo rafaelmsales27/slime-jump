@@ -40,6 +40,8 @@ window.addEventListener('load', function () {
         // rembember to make jump not floaty 
         // make game remember if player have pressed jump right before touching the ground 
         // and execute jump right after it touches the ground. 
+        // pos += vel*t + 1/2*acc*t*t
+        // vel += acc*t
       }
     }
 
