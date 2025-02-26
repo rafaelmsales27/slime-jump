@@ -9,7 +9,7 @@ window.addEventListener('load', function () {
     constructor(game) {
       this.game = game;
       window.addEventListener('keydown', event => {
-        if ((event.key === 'ArrowUp') && this.game.keys.indexOf(event.key) === -1) {
+        if ((event.key === 'ArrowUp' || event.key === ' ') && this.game.keys.indexOf(event.key) === -1) {
           this.game.keys.push(event.key);
         }
       });
@@ -47,7 +47,7 @@ window.addEventListener('load', function () {
         this.gravity = 1; // Reset gravity to fall down
       }
 
-      if (this.game.keys.includes('ArrowUp')) {
+      if (this.game.keys.includes('ArrowUp') || this.game.keys.includes(' ')) {
         this.gravity = -2;
         //TODO implement jump
         // rembember to make jump not floaty 
@@ -99,13 +99,15 @@ window.addEventListener('load', function () {
   }
 
   const game = new Game(canvas.width, canvas.height);
-
-  function animate() {
+  let lastTime = 0;
+  function animate(timeStamp) {
+    const deltaTime = timeStamp - lastTime;
+    lastTime = timeStamp;
     drawingContext.clearRect(0, 0, canvas.width, canvas.height);
-    game.update();
+    game.update(lastTime);
     game.draw(drawingContext);
     requestAnimationFrame(animate); // Endless loop bacause I am passing the parent
   }
 
-  animate();
+  animate(0);
 })
