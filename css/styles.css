@@ -4,13 +4,13 @@
     box-sizing: border-box;
 }
 
-#mainCanva {
+#mainCanvas {
     border: 5px solid black;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgb(76, 216, 0);
-    max-width: 100%;
-    max-width: 100%;
+    max-width: 90%;
+    max-height: 90%;
 }

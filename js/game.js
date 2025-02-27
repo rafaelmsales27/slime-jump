@@ -1,6 +1,6 @@
 window.addEventListener('load', function () {
   // Canva consfiguration
-  const canvas = document.getElementById('mainCanva');
+  const canvas = document.getElementById('mainCanvas');
   const context = canvas.getContext('2d');
   canvas.width = 600;
   canvas.height = 400;
@@ -31,7 +31,9 @@ window.addEventListener('load', function () {
     if (playerPosition.y > (bottomLine)){
       playerPosition.y = bottomLine;
     }
+    // TODO more dynamic fall 
     playerPosition.y += gravity;
+    // TODO create isTouchingGround variable and jumpKeyPressed
     if (keys['ArrowUp']) {
       jump(deltaTime);
     }
@@ -52,8 +54,6 @@ window.addEventListener('load', function () {
     // vel += acc*t
     playerPosition.y += (playerVelocity * t) + ((1 / 2) * playerAcceleration * t * t);
     playerVelocity += playerAcceleration * t;
-    console.log(`Vel: ${playerVelocity}`);
-    console.log(`Pos: ${playerPosition.y}`);
   }
 
 
@@ -79,10 +79,18 @@ window.addEventListener('load', function () {
     }
   }
 
+  // function reScaleScreen(){
+  //   window.addEventListener('resize', function(event){
+  //     canvas.width = event.currentTarget.innerWidth;
+  //     canvas.height = event.currentTarget.innerHeight;
+  //   });
+  // }
+
   let lastTime = 0;
   function gameLoop(timeStamp) {
     const deltaTime = timeStamp - lastTime;
     lastTime = timeStamp;
+    // reScaleScreen();
     inputHandler();
     updateState(deltaTime);
     drawElements();
