@@ -8,11 +8,13 @@ window.addEventListener('load', function () {
   // Player configuration
   const playerWidth = 100;
   const playerHeight = 50;
-  let playerPosition = { x: 50, y: 50 };
-  let playerVelocity = 0;
-  let playerAcceleration = 0;
+  let playerPosition = { x: 50, y: 350 };
+  let playerVelocity = -0.015;
+  let playerAcceleration = -0.0015;
 
   let keys = {};
+
+  let gravity = 5;
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -25,25 +27,35 @@ window.addEventListener('load', function () {
   }
 
   function updateState(deltaTime) {
-    if(keys['ArrowDown']) {
-      playerPosition.y += 1;
+    const bottomLine = canvas.height - playerHeight;
+    if (playerPosition.y > (bottomLine)){
+      playerPosition.y = bottomLine;
+    }
+    playerPosition.y += gravity;
+    if (keys['ArrowUp']) {
+      jump(deltaTime);
     }
   }
 
   function drawElements() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight)
   }
 
   function jump(t) {
-    playerPosition.y += playerVelocity * t + 1 / 2 * playerAcceleration * t * t;
+    //TODO implement jump
+    // rembember to make jump not floaty 
+    // make game remember if player have pressed jump right before touching the ground 
+    // and execute jump right after it touches the ground. 
+    // pos += vel*t + 1/2*acc*t*t
+    // vel += acc*t
+    playerPosition.y += (playerVelocity * t) + ((1 / 2) * playerAcceleration * t * t);
     playerVelocity += playerAcceleration * t;
+    console.log(`Vel: ${playerVelocity}`);
+    console.log(`Pos: ${playerPosition.y}`);
   }
-  //TODO implement jump
-  // rembember to make jump not floaty 
-  // make game remember if player have pressed jump right before touching the ground 
-  // and execute jump right after it touches the ground. 
-  // pos += vel*t + 1/2*acc*t*t
-  // vel += acc*t
+
 
   //! For debbuging purposes (Remove later)
   function drawGrid() {
