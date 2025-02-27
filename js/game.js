@@ -9,12 +9,11 @@ window.addEventListener('load', function () {
   const playerWidth = 100;
   const playerHeight = 50;
   let playerPosition = { x: 50, y: 350 };
-  let playerVelocity = -0.015;
-  let playerAcceleration = -0.0015;
-
+  let playerVelocity = 0;
+  let gravity = 200;
+  let jumpStrength = 500;
+  let isTouchingGround = false;
   let keys = {};
-
-  let gravity = 5;
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -26,16 +25,39 @@ window.addEventListener('load', function () {
     });
   }
 
+  const bottomLine = canvas.height - playerHeight;
+
   function updateState(deltaTime) {
-    const bottomLine = canvas.height - playerHeight;
+    // apply dynamics (gravity)
+    deltaTime /= 1000; // Convert to seconds
+    playerPosition.y += playerVelocity * deltaTime + 0.5 * gravity * deltaTime * deltaTime;
+    playerVelocity += gravity * deltaTime;
+
+    // lower boundry
     if (playerPosition.y > (bottomLine)){
       playerPosition.y = bottomLine;
+      isTouchingGround = true;
     }
-    // TODO more dynamic fall 
-    playerPosition.y += gravity;
-    // TODO create isTouchingGround variable and jumpKeyPressed
+    // upper boundry
+    if (playerPosition.y < 0){
+      playerPosition.y = 0;
+    }
+
     if (keys['ArrowUp']) {
-      jump(deltaTime);
+      jump();
+    }
+  }
+
+  function jump() {    
+    //TODO implement jump
+    // rembember to make jump not floaty 
+    // make game remember if player have pressed jump right before touching the ground 
+    // and execute jump right after it touches the ground. 
+    // pos += vel*t + 1/2*acc*t*t
+    // vel += acc*t
+    if(isTouchingGround) {
+      playerVelocity -= jumpStrength;
+      isTouchingGround = false;
     }
   }
 
@@ -43,19 +65,13 @@ window.addEventListener('load', function () {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight)
+    //! Debug purposes
+    if (isTouchingGround) {
+      context.fillStyle = "black";
+      context.font = "14px Arial";
+      context.fillText("On Ground", playerPosition.x, playerPosition.y - 10);
+    }
   }
-
-  function jump(t) {
-    //TODO implement jump
-    // rembember to make jump not floaty 
-    // make game remember if player have pressed jump right before touching the ground 
-    // and execute jump right after it touches the ground. 
-    // pos += vel*t + 1/2*acc*t*t
-    // vel += acc*t
-    playerPosition.y += (playerVelocity * t) + ((1 / 2) * playerAcceleration * t * t);
-    playerVelocity += playerAcceleration * t;
-  }
-
 
   //! For debbuging purposes (Remove later)
   function drawGrid() {
