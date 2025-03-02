@@ -1,9 +1,37 @@
-window.addEventListener('load', function () {
-  // Canva consfiguration
+import { loadSprite, makeSprite, makeLayer, makeInfiniteScroll } from "./utils.js";
+
+const container = document.querySelector(".container");
+
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty(
+    "--scale",
+    Math.min(
+      container.parentElement.offsetWidth / container.offsetWidth,
+      container.parentElement.offsetHeight / container.offsetHeight
+    )
+  );
+}).observe(container.parentElement);
+
+async function main() {
+  const [layer1, layer2, layer3, layer4] = await Promise.all([
+    loadSprite("./assets/images/background/1.Background.png"),
+    loadSprite("./assets/images/background/2.Trees_back.png"),
+    loadSprite("./assets/images/background/3.Trees_front.png"),
+    loadSprite("./assets/images/background/4.Ground.png")
+  ]);
+
   const canvas = document.getElementById('mainCanvas');
   const context = canvas.getContext('2d');
-  canvas.width = 600;
-  canvas.height = 400;
+  context.imageSmoothingEnabled = false;
+  canvas.width = 480;
+  canvas.height = 270;
+
+  const iamgeScaleFactor = 2;
+
+  const firstLayer = makeSprite(context, layer1, { x: 0, y: -100 }, iamgeScaleFactor);
+  const secondLayer = makeLayer(context, layer2, { x: 0, y: -100 }, iamgeScaleFactor);
+  const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
+  const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
   const playerWidth = 100;
@@ -28,28 +56,23 @@ window.addEventListener('load', function () {
     });
   }
 
-  const bottomLine = canvas.height - playerHeight;
+  const bottomLine = canvas.height - playerHeight - 90;
 
   function updateState(deltaTime) {
     // apply dynamics
     deltaTime /= 1000; // Convert to seconds
-    // if (playerVelocity < 0) {
-    //   gravity = 200; 
-    // } else {
-    //   gravity = 500; // Falling
-    // }
-    
+
     playerPosition.y += playerVelocity * deltaTime + 0.5 * gravity * deltaTime * deltaTime;
     playerVelocity += gravity * deltaTime;
 
-    // lower boundry
-    if (playerPosition.y > (bottomLine)){
+    // lower boundary
+    if (playerPosition.y > (bottomLine)) {
       playerPosition.y = bottomLine;
       isTouchingGround = true;
       playerVelocity = 0;
     }
-    // upper boundry
-    if (playerPosition.y < 0){
+    // upper boundary
+    if (playerPosition.y < 0) {
       playerPosition.y = 0;
     }
 
@@ -58,103 +81,98 @@ window.addEventListener('load', function () {
     }
   }
 
-  function jump() {    
-    //TODO implement jump
-    // rembember to make jump not floaty 
-    // make game remember if player have pressed jump right before touching the ground 
-    // and execute jump right after it touches the ground. 
-    // pos += vel*t + 1/2*acc*t*t
-    // vel += acc*t
-    if(isTouchingGround) {
+  function jump() {
+    if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
       howManyJumps++;
     }
   }
 
-
   // Obstacle configuration
   const obstacleWidth = 50;
   const obstacleHeight = 50;
-  let obstaclePosition = {x: canvas.width, y: canvas.height - obstacleHeight}
+  let obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight }
   const obstableInterval = 1000;
   const obstacleVelocity = -50;
   let destroyObstacle = false;
 
-  function obstacle(deltaTime){
+  function obstacle(deltaTime) {
     // generate obstacle
 
     // update position
     obstaclePosition.x -= obstacleVelocity * deltaTime;
-    
+
     // make it disappear when touches left side (0,X)
     if (obstaclePosition.x < 0) {
       destroyObstacle = true;
     }
   }
 
-  function drawElements() {
+  function drawElements(deltaTime) {
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background draw
+    firstLayer.draw();
+    makeInfiniteScroll(deltaTime, secondLayer, -0.1);
+    makeInfiniteScroll(deltaTime, thirdLayer, -0.25);
+    makeInfiniteScroll(deltaTime, forthLayer, -0.4);
+
+    // Player draw
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight)
 
     if (!destroyObstacle) {
-      context.fillStyle = 'red';
       context.fillRect(obstaclePosition.x, obstaclePosition.y, obstacleWidth, obstacleHeight);
     }
 
-    //! Debug purposes
-    if (isTouchingGround) {
-      context.fillStyle = "black";
-      context.font = "14px Arial";
-      context.fillText("On Ground", playerPosition.x, playerPosition.y - 10);
-    }
+    // //! Debug purposes
+    // if (isTouchingGround) {
+    context.fillStyle = "black";
+    context.font = "14px Arial";
+    //   context.fillText("On Ground", playerPosition.x, playerPosition.y - 10);
+    // }
 
-    //! Debug purposes
-    context.fillText("Vel", 400, 300);
-    context.fillText(Math.round(playerVelocity), 400, 315);
+    // //! Debug purposes
+    // context.fillText("Vel", 400, 300);
+    // context.fillText(Math.round(playerVelocity), 400, 315);
   }
 
-  //! For debbuging purposes (Remove later)
-  function drawGrid() {
-    context.strokeStyle = '#e0e0e0';
-    context.lineWidth = 1;
+  // //! For debbuging purposes (Remove later)
+  // function drawGrid() {
+  //   context.strokeStyle = '#e0e0e0';
+  //   context.lineWidth = 1;
 
-    for (let x = 0; x <= canvas.width; x = x + 25) {
-      context.beginPath();
-      context.moveTo(x, 0);
-      context.lineTo(x, canvas.height);
-      context.stroke();
-      context.fillText(x, x, 10);
-    }
+  //   for (let x = 0; x <= canvas.width; x = x + 25) {
+  //     context.beginPath();
+  //     context.moveTo(x, 0);
+  //     context.lineTo(x, canvas.height);
+  //     context.stroke();
+  //     context.fillText(x, x, 10);
+  //   }
 
-    for (let y = 0; y <= canvas.height; y = y + 25) {
-      context.beginPath();
-      context.moveTo(0, y);
-      context.lineTo(canvas.width, y);
-      context.stroke();
-      context.fillText(y, 0, y + 10);
-    }
-  }
-
-  // function reScaleScreen(){
-  //   window.addEventListener('resize', function(event){
-  //     canvas.width = event.currentTarget.innerWidth;
-  //     canvas.height = event.currentTarget.innerHeight;
-  //   });
+  //   for (let y = 0; y <= canvas.height; y = y + 25) {
+  //     context.beginPath();
+  //     context.moveTo(0, y);
+  //     context.lineTo(canvas.width, y);
+  //     context.stroke();
+  //     context.fillText(y, 0, y + 10);
+  //   }
   // }
 
   let lastTime = 0;
   function gameLoop(timeStamp) {
     const deltaTime = timeStamp - lastTime;
     lastTime = timeStamp;
-    // reScaleScreen();
-    
+
     updateState(deltaTime);
-    drawElements();
-    drawGrid();
+    drawElements(deltaTime);
+    // drawGrid();
     requestAnimationFrame(gameLoop); // Recursively call gameLoop
   }
+
   inputHandler();
   gameLoop(0);
-})
+}
+
+main();
