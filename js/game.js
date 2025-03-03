@@ -34,7 +34,7 @@ async function main() {
   const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
-  const playerWidth = 100;
+  const playerWidth = 50;
   const playerHeight = 50;
   let playerPosition = { x: 50, y: 350 };
   let playerVelocity = 0;
@@ -53,6 +53,14 @@ async function main() {
 
     window.addEventListener('keyup', function (event) {
       keys[event.key] = false;
+    });
+
+    window.addEventListener('mousedown', function (event) {
+      keys['click'] = true;
+    });
+
+    window.addEventListener('mouseup', function (event) {
+      keys['click'] = false;
     });
   }
 
@@ -76,9 +84,11 @@ async function main() {
       playerPosition.y = 0;
     }
 
-    if (keys['ArrowUp']) {
+    if (keys['ArrowUp'] || keys[' '] || keys['click'] || keys['Enter']) {
       jump();
     }
+
+    updateObstacles(deltaTime);
   }
 
   function jump() {
@@ -92,21 +102,37 @@ async function main() {
   // Obstacle configuration
   const obstacleWidth = 50;
   const obstacleHeight = 50;
-  let obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight }
-  const obstableInterval = 1000;
-  const obstacleVelocity = -50;
-  let destroyObstacle = false;
+  const obstableInterval = 5;
+  const obstacleVelocity = 150;
+  let timeElapsedObstacle = 0;
+  let obstacles = [];
 
-  function obstacle(deltaTime) {
-    // generate obstacle
+  function generateObstacle() {
+    const obstaclePosition = { x: canvas.width, y: canvas.height - bottomLine};
+    obstacles.push(obstaclePosition);
+  }
 
-    // update position
-    obstaclePosition.x -= obstacleVelocity * deltaTime;
-
-    // make it disappear when touches left side (0,X)
-    if (obstaclePosition.x < 0) {
-      destroyObstacle = true;
+  function updateObstacles(deltaTime) {
+    timeElapsedObstacle += deltaTime;
+    console.log(`Time`, timeElapsedObstacle);
+    if (timeElapsedObstacle >= obstableInterval) {
+      generateObstacle();
+      timeElapsedObstacle = 0;
     }
+
+    obstacles.forEach((obstacle, index) => {
+      obstacle.x -= obstacleVelocity * deltaTime;
+      if (obstacle.x < -obstacleWidth) {
+        obstacles.splice(index, 1); // Remove obstacle if it moves off the screen
+      }
+    });
+  }
+
+  function drawObstacles() {
+    context.fillStyle = 'red';
+    obstacles.forEach(obstacle => {
+      context.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
+    });
   }
 
   function drawElements(deltaTime) {
@@ -120,11 +146,9 @@ async function main() {
 
     // Player draw
     context.fillStyle = 'blue';
-    context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight)
+    context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
 
-    if (!destroyObstacle) {
-      context.fillRect(obstaclePosition.x, obstaclePosition.y, obstacleWidth, obstacleHeight);
-    }
+    drawObstacles();
 
     // //! Debug purposes
     // if (isTouchingGround) {
