@@ -114,7 +114,6 @@ async function main() {
 
   function updateObstacles(deltaTime) {
     timeElapsedObstacle += deltaTime;
-    console.log(`Time`, timeElapsedObstacle);
     if (timeElapsedObstacle >= obstableInterval) {
       generateObstacle();
       timeElapsedObstacle = 0;
