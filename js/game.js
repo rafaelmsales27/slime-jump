@@ -62,6 +62,16 @@ async function main() {
     window.addEventListener('mouseup', function (event) {
       keys['click'] = false;
     });
+
+    canvas.addEventListener('touchstart', (event) => {
+      event.preventDefault();
+      keys['touch'] = true;
+    });
+
+    canvas.addEventListener('touchend', (event) => {
+      event.preventDefault();
+      keys['touch'] = false;
+    });
   }
 
   const bottomLine = canvas.height - playerHeight - 90;
@@ -84,7 +94,7 @@ async function main() {
       playerPosition.y = 0;
     }
 
-    if (keys['ArrowUp'] || keys[' '] || keys['click'] || keys['Enter']) {
+    if (keys['ArrowUp'] || keys[' '] || keys['click'] || keys['Enter'] || keys['touch']) {
       jump();
     }
 
@@ -108,7 +118,7 @@ async function main() {
   let obstacles = [];
 
   function generateObstacle() {
-    const obstaclePosition = { x: canvas.width, y: canvas.height - bottomLine};
+    const obstaclePosition = { x: canvas.width, y: canvas.height - bottomLine };
     obstacles.push(obstaclePosition);
   }
 
