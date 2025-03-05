@@ -46,6 +46,8 @@ async function main() {
 
   let howManyJumps = 0;
 
+  let gameVelocity = 0.2;
+
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
       keys[event.key] = true;
@@ -113,12 +115,12 @@ async function main() {
   const obstacleWidth = 50;
   const obstacleHeight = 50;
   const obstableInterval = 5;
-  const obstacleVelocity = 150;
+  const obstacleVelocity = gameVelocity * 1000;
   let timeElapsedObstacle = 0;
   let obstacles = [];
 
   function generateObstacle() {
-    const obstaclePosition = { x: canvas.width, y: canvas.height - bottomLine };
+    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight -90};
     obstacles.push(obstaclePosition);
   }
 
@@ -149,9 +151,9 @@ async function main() {
 
     // Background draw
     firstLayer.draw();
-    makeInfiniteScroll(deltaTime, secondLayer, -0.1);
-    makeInfiniteScroll(deltaTime, thirdLayer, -0.25);
-    makeInfiniteScroll(deltaTime, forthLayer, -0.4);
+    makeInfiniteScroll(deltaTime, secondLayer, -0.05);
+    makeInfiniteScroll(deltaTime, thirdLayer, -0.1);
+    makeInfiniteScroll(deltaTime, forthLayer, -gameVelocity);
 
     // Player draw
     context.fillStyle = 'blue';
