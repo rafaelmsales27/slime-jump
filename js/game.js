@@ -13,11 +13,12 @@ new ResizeObserver(() => {
 }).observe(container.parentElement);
 
 async function main() {
-  const [layer1, layer2, layer3, layer4] = await Promise.all([
+  const [layer1, layer2, layer3, layer4, playerImage] = await Promise.all([
     loadSprite("./assets/images/background/1.Background.png"),
     loadSprite("./assets/images/background/2.Trees_back.png"),
     loadSprite("./assets/images/background/3.Trees_front.png"),
-    loadSprite("./assets/images/background/4.Ground.png")
+    loadSprite("./assets/images/background/4.Ground.png"),
+    loadSprite("./assets/images/characters/slime/Run.png"),
   ]);
 
   const canvas = document.getElementById('mainCanvas');
@@ -158,6 +159,7 @@ async function main() {
     // Player draw
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
+    context.drawImage(playerImage, playerPosition.x, playerPosition.y, playerImage.width, playerImage.height);
 
     drawObstacles();
 
