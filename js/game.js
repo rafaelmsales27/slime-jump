@@ -34,6 +34,17 @@ async function main() {
   const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
   const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
 
+  // Song
+  const song = document.getElementById("song");
+  song.volume = 0.15;
+  song.addEventListener('ended', () => {
+    if (!gameOver) {
+      this.currentTime = 0;
+      this.play();
+      console.log('song restarted');
+    }
+  });
+
   // Player configuration
   const playerWidth = 60;
   const playerHeight = 35;
@@ -63,6 +74,12 @@ async function main() {
   let gameOver = false;
 
   function inputHandler() {
+    window.addEventListener('keydown', function (event) {
+      if ((event.key === 'r' || event.key === 'R') && gameOver) {
+        restartGame();
+      }
+    });
+
     window.addEventListener('keydown', function (event) {
       keys[event.key] = true;
     });
@@ -188,6 +205,8 @@ async function main() {
       context.fillStyle = "red";
       context.font = "42px Bangers, Arial";
       context.fillText("Game Over", canvas.width / 2, canvas.height / 2);
+      context.font = "16px Bangers, Arial";
+      context.fillText("Press 'R' to restart", canvas.width / 2, canvas.height / 2 + 20);
     }
   }
 
@@ -253,17 +272,32 @@ async function main() {
   //   }
   // }
 
+  function restartGame() {
+    playerPosition = { x: 50, y: 350 };
+    playerVelocity = 0;
+    isTouchingGround = false;
+    gameVelocity = gameInitialVelocity;
+    score = 0;
+    gameOver = false;
+    obstacles = [];
+    song.currentTime = 0;
+    song.play();
+    gameLoop(performance.now());
+  }
+
   let lastTime = 0;
   function gameLoop(timeStamp) {
     const deltaTime = timeStamp - lastTime;
     lastTime = timeStamp;
-
     updateState(deltaTime);
     drawElements(deltaTime);
     // drawGrid();
     if (gameOver) {
       gameVelocity = 0;
+      song.pause();
+      song.currentTime = 0;
     } else {
+      song.play();
       requestAnimationFrame(gameLoop); // Recursively call gameLoop
     }
   }
