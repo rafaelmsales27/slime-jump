@@ -35,12 +35,22 @@ async function main() {
   const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
-  const playerWidth = 50;
-  const playerHeight = 50;
+  const playerWidth = 60;
+  const playerHeight = 35;
   let playerPosition = { x: 50, y: 350 };
   let playerVelocity = 0;
   let jumpStrength = 350;
   let isTouchingGround = false;
+
+  // Player Sprite config
+  const numberOfPlayerSprites = 7;
+  const playerSpriteMaxHeight = playerImage.height; //128
+  const playerSpriteMaxWidth = playerImage.width / numberOfPlayerSprites; //128
+  const playerSpriteHeight = 35;
+  const playerSpriteWidth = 60;
+  const playerSpriteX = 0;
+  const playerSprite = 0;
+
 
   let gravity = 500;
   let keys = {};
@@ -121,7 +131,7 @@ async function main() {
   let obstacles = [];
 
   function generateObstacle() {
-    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight -90};
+    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 90 };
     obstacles.push(obstaclePosition);
   }
 
@@ -159,7 +169,17 @@ async function main() {
     // Player draw
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
-    context.drawImage(playerImage, playerPosition.x, playerPosition.y, playerImage.width, playerImage.height);
+    context.drawImage(
+      playerImage,
+      26,
+      93,
+      playerSpriteWidth,
+      playerSpriteHeight,
+      playerPosition.x,
+      playerPosition.y,
+      playerSpriteWidth,
+      playerSpriteHeight
+    );
 
     drawObstacles();
 
