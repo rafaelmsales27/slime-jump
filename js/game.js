@@ -55,9 +55,12 @@ async function main() {
   let gravity = 500;
   let keys = {};
 
-  let howManyJumps = 0;
+  let gameInitialVelocity = 0.2;
+  let gameVelocity = gameInitialVelocity;
 
-  let gameVelocity = 0.2;
+  let score = 0;
+
+  let gameOver = false;
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -111,6 +114,8 @@ async function main() {
       jump();
     }
 
+    checkCollision();
+
     updateObstacles(deltaTime);
   }
 
@@ -118,8 +123,20 @@ async function main() {
     if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
-      howManyJumps++;
     }
+  }
+
+  function checkCollision() {
+    obstacles.forEach((obstacle) => {
+      if (
+        playerPosition.x + playerWidth >= obstacle.x &&
+        playerPosition.x <= obstacle.x + obstacleWidth &&
+        playerPosition.y + playerHeight >= obstacle.y &&
+        playerPosition.y <= obstacle.y + obstacleHeight
+      ) {
+        gameOver = true;
+      }
+    });
   }
 
   // Obstacle configuration
@@ -146,6 +163,7 @@ async function main() {
       obstacle.x -= obstacleVelocity * deltaTime;
       if (obstacle.x < -obstacleWidth) {
         obstacles.splice(index, 1); // Remove obstacle if it moves off the screen
+        score++;
       }
     });
   }
@@ -157,14 +175,30 @@ async function main() {
     });
   }
 
+  function drawText() {
+    // context.fillStyle = "#009FA8";
+    context.fillStyle = "red";
+    context.font = "16px Bangers, Arial";
+    context.fillText("Score: ", 10, 20);
+    context.fillText(score, 55, 20);
+
+    if (gameOver) {
+      // context.fillStyle = "#009FA8";
+      context.textAlign = "center";
+      context.fillStyle = "red";
+      context.font = "42px Bangers, Arial";
+      context.fillText("Game Over", canvas.width / 2, canvas.height / 2);
+    }
+  }
+
   function drawElements(deltaTime) {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     // Background draw
     firstLayer.draw();
-    makeInfiniteScroll(deltaTime, secondLayer, -0.05);
-    makeInfiniteScroll(deltaTime, thirdLayer, -0.1);
-    makeInfiniteScroll(deltaTime, forthLayer, -gameVelocity);
+    makeInfiniteScroll(deltaTime, secondLayer, -gameVelocity / 4); // 0.05
+    makeInfiniteScroll(deltaTime, thirdLayer, -gameVelocity / 2); // 0.1
+    makeInfiniteScroll(deltaTime, forthLayer, -gameVelocity); // 0.2
 
     // Player draw
     context.fillStyle = 'blue';
@@ -183,10 +217,12 @@ async function main() {
 
     drawObstacles();
 
+    drawText();
+
     // //! Debug purposes
     // if (isTouchingGround) {
-    context.fillStyle = "black";
-    context.font = "14px Arial";
+    // context.fillStyle = "black";
+    // context.font = "14px Bangers, Arial";
     //   context.fillText("On Ground", playerPosition.x, playerPosition.y - 10);
     // }
 
@@ -225,7 +261,11 @@ async function main() {
     updateState(deltaTime);
     drawElements(deltaTime);
     // drawGrid();
-    requestAnimationFrame(gameLoop); // Recursively call gameLoop
+    if (gameOver) {
+      gameVelocity = 0;
+    } else {
+      requestAnimationFrame(gameLoop); // Recursively call gameLoop
+    }
   }
 
   inputHandler();
