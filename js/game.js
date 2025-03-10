@@ -1,4 +1,5 @@
 import { loadSprite, makeSprite, makeLayer, makeInfiniteScroll } from "./utils.js";
+import { AudioManager } from "./audio.js";
 
 const container = document.querySelector(".container");
 
@@ -34,17 +35,6 @@ async function main() {
   const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
   const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
 
-  // Song
-  const song = document.getElementById("song");
-  song.volume = 0.15;
-  song.addEventListener('ended', () => {
-    if (!gameOver) {
-      this.currentTime = 0;
-      this.play();
-      console.log('song restarted');
-    }
-  });
-
   // Player configuration
   const playerWidth = 60;
   const playerHeight = 35;
@@ -62,7 +52,6 @@ async function main() {
   const playerSpriteX = 0;
   const playerSprite = 0;
 
-
   let gravity = 500;
   let keys = {};
 
@@ -72,6 +61,8 @@ async function main() {
   let score = 0;
 
   let gameOver = false;
+
+  const audio = new AudioManager();
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -280,8 +271,6 @@ async function main() {
     score = 0;
     gameOver = false;
     obstacles = [];
-    song.currentTime = 0;
-    song.play();
     gameLoop(performance.now());
   }
 
@@ -294,10 +283,7 @@ async function main() {
     // drawGrid();
     if (gameOver) {
       gameVelocity = 0;
-      song.pause();
-      song.currentTime = 0;
     } else {
-      song.play();
       requestAnimationFrame(gameLoop); // Recursively call gameLoop
     }
   }
