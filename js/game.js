@@ -63,6 +63,7 @@ async function main() {
   let gameOver = false;
 
   const audio = new AudioManager();
+  audio.playMusic();
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -79,13 +80,13 @@ async function main() {
       keys[event.key] = false;
     });
 
-    window.addEventListener('mousedown', function (event) {
-      keys['click'] = true;
-    });
+    // window.addEventListener('mousedown', function (event) {
+    //   keys['click'] = true;
+    // });
 
-    window.addEventListener('mouseup', function (event) {
-      keys['click'] = false;
-    });
+    // window.addEventListener('mouseup', function (event) {
+    //   keys['click'] = false;
+    // });
 
     canvas.addEventListener('touchstart', (event) => {
       event.preventDefault();
@@ -131,6 +132,7 @@ async function main() {
     if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
+      audio.playSound('jump');
     }
   }
 
@@ -143,6 +145,7 @@ async function main() {
         playerPosition.y <= obstacle.y + obstacleHeight
       ) {
         gameOver = true;
+        audio.stopMusic();
       }
     });
   }
@@ -186,6 +189,7 @@ async function main() {
   function drawText() {
     // context.fillStyle = "#009FA8";
     context.fillStyle = "red";
+    context.textAlign = "left";
     context.font = "16px Bangers, Arial";
     context.fillText("Score: ", 10, 20);
     context.fillText(score, 55, 20);
@@ -271,6 +275,7 @@ async function main() {
     score = 0;
     gameOver = false;
     obstacles = [];
+    audio.playMusic();
     gameLoop(performance.now());
   }
 
