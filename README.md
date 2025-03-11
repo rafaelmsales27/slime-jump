@@ -1,6 +1,6 @@
 # 🟢 Slime Jump
 
-**Slime Jump** is a simple and engaging endless runner game built using **HTML, CSS, and JavaScript**. Test your reflexes as you jump over obstacles and compete for the highest score!  
+[**Slime Jump**](https://rafaelmsales27.github.io/slime-jump/) is a simple and engaging endless runner game built using **HTML, CSS, and JavaScript**. Test your reflexes as you jump over obstacles and compete for the highest score!  
 
 ## 🚀 Features
 
