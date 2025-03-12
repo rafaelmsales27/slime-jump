@@ -7,7 +7,7 @@ export class AudioManager {
 
         this.soundEffects = {
             jump: new Audio('./assets/sounds/slime-jump-1.mp3'),
-        //     die: new Audio('sounds/collect.mp3'),
+        //     die: new Audio('sounds/die.mp3'),
         };
     };
 
