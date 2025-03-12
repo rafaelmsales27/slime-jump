@@ -1,5 +1,53 @@
-import { loadSprite, makeSprite, makeLayer, makeInfiniteScroll } from "./utils.js";
-import { AudioManager } from "./audio.js";
+export function loadBackground(path) {
+  return new Promise((resolve, reject) => {
+      const img = new Image();
+      // img.src = path;
+      img.src = path + "?t=" + new Date().getTime(); // Cache busting
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+  });
+}
+
+export function makeBackground(context, sprite, pos, scale = 1) {
+  return {
+      width: sprite.width,
+      height: sprite.height,
+      pos,
+      scale,
+      draw() {
+          context.drawImage(
+              sprite,
+              this.pos.x,
+              this.pos.y,
+              this.width * scale,
+              this.height * scale
+          );
+      },
+  };
+}
+
+export function makeLayer(context, sprite, pos, scale = 1) {
+  return {
+      head: makeBackground(context, sprite, pos, scale),
+      tail: makeBackground(context, sprite, { x: pos.x + sprite.width * scale, y: pos.y }, scale),
+  };
+}
+
+export function makeInfiniteScroll(deltaTime, layer, speed) {
+  layer.head.pos.x += speed * deltaTime;
+  layer.tail.pos.x += speed * deltaTime;
+
+  if (layer.head.pos.x + layer.head.width * layer.head.scale <= 0) {
+      layer.head.pos.x = layer.tail.pos.x + layer.tail.width * layer.tail.scale;
+  }
+
+  if (layer.tail.pos.x + layer.tail.width * layer.tail.scale <= 0) {
+      layer.tail.pos.x = layer.head.pos.x + layer.head.width * layer.head.scale;
+  }
+
+  layer.head.draw();
+  layer.tail.draw();
+}
 
 const container = document.querySelector(".container");
 
@@ -15,11 +63,11 @@ new ResizeObserver(() => {
 
 async function main() {
   const [layer1, layer2, layer3, layer4, playerImage] = await Promise.all([
-    loadSprite("./assets/images/background/1.Background.png"),
-    loadSprite("./assets/images/background/2.Trees_back.png"),
-    loadSprite("./assets/images/background/3.Trees_front.png"),
-    loadSprite("./assets/images/background/4.Ground.png"),
-    loadSprite("./assets/images/characters/slime/Run.png"),
+    loadBackground("./assets/images/background/1.Background.png"),
+    loadBackground("./assets/images/background/2.Trees_back.png"),
+    loadBackground("./assets/images/background/3.Trees_front.png"),
+    loadBackground("./assets/images/background/4.Ground.png"),
+    loadBackground("./assets/images/characters/slime/Run.png"),
   ]);
 
   const canvas = document.getElementById('mainCanvas');
@@ -30,7 +78,7 @@ async function main() {
 
   const iamgeScaleFactor = 2;
 
-  const firstLayer = makeSprite(context, layer1, { x: 0, y: -100 }, iamgeScaleFactor);
+  const firstLayer = makeBackground(context, layer1, { x: 0, y: -100 }, iamgeScaleFactor);
   const secondLayer = makeLayer(context, layer2, { x: 0, y: -100 }, iamgeScaleFactor);
   const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
   const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
@@ -61,9 +109,6 @@ async function main() {
   let score = 0;
 
   let gameOver = false;
-
-  const audio = new AudioManager();
-  audio.playMusic();
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -132,7 +177,7 @@ async function main() {
     if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
-      audio.playSound('jump');
+      // audio.playSound('jump');
     }
   }
 
@@ -145,7 +190,7 @@ async function main() {
         playerPosition.y <= obstacle.y + obstacleHeight
       ) {
         gameOver = true;
-        audio.stopMusic();
+        // audio.stopMusic();
       }
     });
   }
@@ -275,7 +320,7 @@ async function main() {
     score = 0;
     gameOver = false;
     obstacles = [];
-    audio.playMusic();
+    // audio.playMusic();
     gameLoop(performance.now());
   }
 
