@@ -1,48 +1,48 @@
-export function loadBackground(path) {
+function loadBackground(path) {
   return new Promise((resolve, reject) => {
-      const img = new Image();
-      // img.src = path;
-      img.src = path + "?t=" + new Date().getTime(); // Cache busting
-      img.onload = () => resolve(img);
-      img.onerror = (err) => reject(err);
+    const img = new Image();
+    // img.src = path;
+    img.src = path + "?t=" + new Date().getTime(); // Cache busting
+    img.onload = () => resolve(img);
+    img.onerror = (err) => reject(err);
   });
 }
 
-export function makeBackground(context, sprite, pos, scale = 1) {
+function makeBackground(context, sprite, pos, scale = 1) {
   return {
-      width: sprite.width,
-      height: sprite.height,
-      pos,
-      scale,
-      draw() {
-          context.drawImage(
-              sprite,
-              this.pos.x,
-              this.pos.y,
-              this.width * scale,
-              this.height * scale
-          );
-      },
+    width: sprite.width,
+    height: sprite.height,
+    pos,
+    scale,
+    draw() {
+      context.drawImage(
+        sprite,
+        this.pos.x,
+        this.pos.y,
+        this.width * scale,
+        this.height * scale
+      );
+    },
   };
 }
 
-export function makeLayer(context, sprite, pos, scale = 1) {
+function makeLayer(context, sprite, pos, scale = 1) {
   return {
-      head: makeBackground(context, sprite, pos, scale),
-      tail: makeBackground(context, sprite, { x: pos.x + sprite.width * scale, y: pos.y }, scale),
+    head: makeBackground(context, sprite, pos, scale),
+    tail: makeBackground(context, sprite, { x: pos.x + sprite.width * scale, y: pos.y }, scale),
   };
 }
 
-export function makeInfiniteScroll(deltaTime, layer, speed) {
+function makeInfiniteScroll(deltaTime, layer, speed) {
   layer.head.pos.x += speed * deltaTime;
   layer.tail.pos.x += speed * deltaTime;
 
   if (layer.head.pos.x + layer.head.width * layer.head.scale <= 0) {
-      layer.head.pos.x = layer.tail.pos.x + layer.tail.width * layer.tail.scale;
+    layer.head.pos.x = layer.tail.pos.x + layer.tail.width * layer.tail.scale;
   }
 
   if (layer.tail.pos.x + layer.tail.width * layer.tail.scale <= 0) {
-      layer.tail.pos.x = layer.head.pos.x + layer.head.width * layer.head.scale;
+    layer.tail.pos.x = layer.head.pos.x + layer.head.width * layer.head.scale;
   }
 
   layer.head.draw();
@@ -61,14 +61,92 @@ new ResizeObserver(() => {
   );
 }).observe(container.parentElement);
 
+// TODO add visual loader while loading files
+// Asset Loading
+const assetManager = {
+  images: {},
+  sounds: {},
+  loadImages: function (imagePaths) {
+    const promises = Object.entries(imagePaths).map(([key, path]) => {
+      return loadBackground(path).then(img => {
+        this.images[key] = img;
+      });
+    });
+    return Promise.all(promises);
+  },
+  loadSounds: function (soundPaths) {
+    const promises = Object.entries(soundPaths).map(([key, path]) => {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio(path);
+        audio.addEventListener('canplaythrough', () => {
+          this.sounds[key] = audio;
+          resolve();
+        });
+        audio.addEventListener('error', (err) => {
+          reject(err);
+        });
+      });
+    });
+    return Promise.all(promises);
+  },
+  getImage: function (key) {
+    return this.images[key];
+  },
+  getSound: function (key) {
+    return this.sounds[key];
+  },
+  // TODO separate audio playing from assetmanager??
+  playSound: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].currentTime = 0; // Reset to start
+      this.sounds[key].play();
+    }
+  },
+  stopSound: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].pause();
+      this.sounds[key].currentTime = 0;
+    }
+  },
+  playMusic: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].loop = true;
+      this.sounds[key].play();
+    }
+  },
+  stopMusic: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].pause();
+      this.sounds[key].currentTime = 0;
+    }
+  }
+};
+
 async function main() {
-  const [layer1, layer2, layer3, layer4, playerImage] = await Promise.all([
-    loadBackground("./assets/images/background/1.Background.png"),
-    loadBackground("./assets/images/background/2.Trees_back.png"),
-    loadBackground("./assets/images/background/3.Trees_front.png"),
-    loadBackground("./assets/images/background/4.Ground.png"),
-    loadBackground("./assets/images/characters/slime/Run.png"),
-  ]);
+  const imagePaths = {
+      layer1: "./assets/images/background/1.Background.png",
+      layer2: "./assets/images/background/2.Trees_back.png",
+      layer3: "./assets/images/background/3.Trees_front.png",
+      layer4: "./assets/images/background/4.Ground.png",
+      playerImage: "./assets/images/characters/slime/Run.png",
+      obstableImage: "./assets/images/characters/warrior/Run.png",
+  };
+
+  const soundPaths = {
+      jump: "./assets/sounds/slime-jump-1.mp3",
+      // gameOver: "./assets/sounds/game_over.wav",
+      backgroundMusic: "./assets/sounds/slime-song-2.mp3",
+  };
+
+  try{
+      await Promise.all([
+          assetManager.loadImages(imagePaths),
+          assetManager.loadSounds(soundPaths)
+      ]);
+  }catch(e){
+      console.error("error loading assets", e);
+      return;
+  }
 
   const canvas = document.getElementById('mainCanvas');
   const context = canvas.getContext('2d');
@@ -78,10 +156,10 @@ async function main() {
 
   const iamgeScaleFactor = 2;
 
-  const firstLayer = makeBackground(context, layer1, { x: 0, y: -100 }, iamgeScaleFactor);
-  const secondLayer = makeLayer(context, layer2, { x: 0, y: -100 }, iamgeScaleFactor);
-  const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
-  const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
+  const firstLayer = makeBackground(context, assetManager.getImage('layer1'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const secondLayer = makeLayer(context, assetManager.getImage('layer2'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const thirdLayer = makeLayer(context, assetManager.getImage('layer3'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const forthLayer = makeLayer(context, assetManager.getImage('layer4'), { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
   const playerWidth = 60;
@@ -92,9 +170,10 @@ async function main() {
   let isTouchingGround = false;
 
   // Player Sprite config
+  const playerImage = assetManager.getImage('playerImage');
   const numberOfPlayerSprites = 7;
-  const playerSpriteMaxHeight = playerImage.height; //128
-  const playerSpriteMaxWidth = playerImage.width / numberOfPlayerSprites; //128
+  const playerSpriteMaxHeight = playerImage.height;
+  const playerSpriteMaxWidth = playerImage.width / numberOfPlayerSprites;
   const playerSpriteHeight = 35;
   const playerSpriteWidth = 60;
   const playerSpriteX = 0;
@@ -136,6 +215,9 @@ async function main() {
     canvas.addEventListener('touchstart', (event) => {
       event.preventDefault();
       keys['touch'] = true;
+      if (gameOver) {
+        restartGame();
+      }
     });
 
     canvas.addEventListener('touchend', (event) => {
@@ -177,7 +259,7 @@ async function main() {
     if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
-      // audio.playSound('jump');
+      // jump sound
     }
   }
 
@@ -246,7 +328,7 @@ async function main() {
       context.font = "42px Bangers, Arial";
       context.fillText("Game Over", canvas.width / 2, canvas.height / 2);
       context.font = "16px Bangers, Arial";
-      context.fillText("Press 'R' to restart", canvas.width / 2, canvas.height / 2 + 20);
+      context.fillText("Press 'R' or touch to restart", canvas.width / 2, canvas.height / 2 + 20);
     }
   }
 
@@ -320,7 +402,7 @@ async function main() {
     score = 0;
     gameOver = false;
     obstacles = [];
-    // audio.playMusic();
+    // play music
     gameLoop(performance.now());
   }
 
