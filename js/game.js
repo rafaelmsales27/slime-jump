@@ -29,20 +29,23 @@ function makeBackground(context, sprite, pos, scale = 1) {
 function makeLayer(context, sprite, pos, scale = 1) {
   return {
     head: makeBackground(context, sprite, pos, scale),
-    tail: makeBackground(context, sprite, { x: pos.x + sprite.width * scale, y: pos.y }, scale),
+    tail: makeBackground(context, sprite, {
+      x: Math.round(pos.x + sprite.width * scale),
+      y: pos.y
+    }, scale),
   };
 }
 
 function makeInfiniteScroll(deltaTime, layer, speed) {
-  layer.head.pos.x += speed * deltaTime;
-  layer.tail.pos.x += speed * deltaTime;
+  layer.head.pos.x += Math.round(speed * deltaTime);
+  layer.tail.pos.x += Math.round(speed * deltaTime);
 
   if (layer.head.pos.x + layer.head.width * layer.head.scale <= 0) {
-    layer.head.pos.x = layer.tail.pos.x + layer.tail.width * layer.tail.scale;
+    layer.head.pos.x = Math.round(layer.tail.pos.x + layer.tail.width * layer.tail.scale);
   }
 
   if (layer.tail.pos.x + layer.tail.width * layer.tail.scale <= 0) {
-    layer.tail.pos.x = layer.head.pos.x + layer.head.width * layer.head.scale;
+    layer.tail.pos.x = Math.round(layer.head.pos.x + layer.head.width * layer.head.scale);
   }
 
   layer.head.draw();
@@ -124,28 +127,28 @@ const assetManager = {
 
 async function main() {
   const imagePaths = {
-      layer1: "./assets/images/background/1.Background.png",
-      layer2: "./assets/images/background/2.Trees_back.png",
-      layer3: "./assets/images/background/3.Trees_front.png",
-      layer4: "./assets/images/background/4.Ground.png",
-      playerImage: "./assets/images/characters/slime/Run.png",
-      obstableImage: "./assets/images/characters/warrior/Run.png",
+    layer1: "./assets/images/background/1.Background.png",
+    layer2: "./assets/images/background/2.Trees_back.png",
+    layer3: "./assets/images/background/3.Trees_front.png",
+    layer4: "./assets/images/background/4.Ground.png",
+    playerImage: "./assets/images/characters/slime/Run.png",
+    obstableImage: "./assets/images/characters/warrior/Run.png",
   };
 
   const soundPaths = {
-      jump: "./assets/sounds/slime-jump-1.mp3",
-      // gameOver: "./assets/sounds/game_over.wav",
-      backgroundMusic: "./assets/sounds/slime-song-2.mp3",
+    jump: "./assets/sounds/slime-jump-1.mp3",
+    // gameOver: "./assets/sounds/game_over.wav",
+    backgroundMusic: "./assets/sounds/slime-song-2.mp3",
   };
 
-  try{
-      await Promise.all([
-          assetManager.loadImages(imagePaths),
-          assetManager.loadSounds(soundPaths)
-      ]);
-  }catch(e){
-      console.error("error loading assets", e);
-      return;
+  try {
+    await Promise.all([
+      assetManager.loadImages(imagePaths),
+      assetManager.loadSounds(soundPaths)
+    ]);
+  } catch (e) {
+    console.error("error loading assets", e);
+    return;
   }
 
   const canvas = document.getElementById('mainCanvas');
