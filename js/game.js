@@ -337,7 +337,7 @@ async function main() {
   function drawObstacles() {
     context.fillStyle = 'red';
     obstacles.forEach(obstacle => {
-      context.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
+      // context.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
       obstacleAnimation.draw(context, obstacle.x - obstacleWidth - 10, obstacle.y - obstacleHeight);
     });
   }
@@ -372,7 +372,7 @@ async function main() {
 
     // Player draw
     context.fillStyle = 'blue';
-    context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
+    // context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
 
     playerAnimation.draw(context, playerPosition.x - playerWidth / 2, playerPosition.y - playerHeight - bottomLine + 90);
 
