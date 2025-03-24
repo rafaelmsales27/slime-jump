@@ -1,5 +1,58 @@
-import { loadSprite, makeSprite, makeLayer, makeInfiniteScroll } from "./utils.js";
-import { AudioManager } from "./audio.js";
+import SpriteAnimation from './spriteAnimation.js';
+
+function loadBackground(path) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // img.src = path;
+    img.src = path + "?t=" + new Date().getTime(); // Cache busting
+    img.onload = () => resolve(img);
+    img.onerror = (err) => reject(err);
+  });
+}
+
+function makeBackground(context, sprite, pos, scale = 1) {
+  return {
+    width: sprite.width,
+    height: sprite.height,
+    pos,
+    scale,
+    draw() {
+      context.drawImage(
+        sprite,
+        this.pos.x,
+        this.pos.y,
+        this.width * scale,
+        this.height * scale
+      );
+    },
+  };
+}
+
+function makeLayer(context, sprite, pos, scale = 1) {
+  return {
+    head: makeBackground(context, sprite, pos, scale),
+    tail: makeBackground(context, sprite, {
+      x: Math.round(pos.x + sprite.width * scale),
+      y: pos.y
+    }, scale),
+  };
+}
+
+function makeInfiniteScroll(deltaTime, layer, speed) {
+  layer.head.pos.x += Math.round(speed * deltaTime);
+  layer.tail.pos.x += Math.round(speed * deltaTime);
+
+  if (layer.head.pos.x + layer.head.width * layer.head.scale <= 0) {
+    layer.head.pos.x = Math.round(layer.tail.pos.x + layer.tail.width * layer.tail.scale);
+  }
+
+  if (layer.tail.pos.x + layer.tail.width * layer.tail.scale <= 0) {
+    layer.tail.pos.x = Math.round(layer.head.pos.x + layer.head.width * layer.head.scale);
+  }
+
+  layer.head.draw();
+  layer.tail.draw();
+}
 
 const container = document.querySelector(".container");
 
@@ -13,14 +66,92 @@ new ResizeObserver(() => {
   );
 }).observe(container.parentElement);
 
+// TODO add visual loader while loading files
+// Asset Loading
+const assetManager = {
+  images: {},
+  sounds: {},
+  loadImages: function (imagePaths) {
+    const promises = Object.entries(imagePaths).map(([key, path]) => {
+      return loadBackground(path).then(img => {
+        this.images[key] = img;
+      });
+    });
+    return Promise.all(promises);
+  },
+  loadSounds: function (soundPaths) {
+    const promises = Object.entries(soundPaths).map(([key, path]) => {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio(path);
+        audio.addEventListener('canplaythrough', () => {
+          this.sounds[key] = audio;
+          resolve();
+        });
+        audio.addEventListener('error', (err) => {
+          reject(err);
+        });
+      });
+    });
+    return Promise.all(promises);
+  },
+  getImage: function (key) {
+    return this.images[key];
+  },
+  getSound: function (key) {
+    return this.sounds[key];
+  },
+  // TODO separate audio playing from assetmanager??
+  playSound: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].currentTime = 0; // Reset to start
+      this.sounds[key].play();
+    }
+  },
+  stopSound: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].pause();
+      this.sounds[key].currentTime = 0;
+    }
+  },
+  playMusic: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].loop = true;
+      this.sounds[key].play();
+    }
+  },
+  stopMusic: function (key) {
+    if (this.sounds[key]) {
+      this.sounds[key].pause();
+      this.sounds[key].currentTime = 0;
+    }
+  }
+};
+
 async function main() {
-  const [layer1, layer2, layer3, layer4, playerImage] = await Promise.all([
-    loadSprite("./assets/images/background/1.Background.png"),
-    loadSprite("./assets/images/background/2.Trees_back.png"),
-    loadSprite("./assets/images/background/3.Trees_front.png"),
-    loadSprite("./assets/images/background/4.Ground.png"),
-    loadSprite("./assets/images/characters/slime/Run.png"),
-  ]);
+  const imagePaths = {
+    layer1: "./assets/images/background/1.Background.png",
+    layer2: "./assets/images/background/2.Trees_back.png",
+    layer3: "./assets/images/background/3.Trees_front.png",
+    layer4: "./assets/images/background/4.Ground.png",
+    playerImage: "./assets/images/characters/slime/Run.png",
+    obstableImage: "./assets/images/characters/warrior/Run.png",
+  };
+
+  const soundPaths = {
+    jump: "./assets/sounds/slime-jump-1.mp3",
+    // gameOver: "./assets/sounds/game_over.wav",
+    backgroundMusic: "./assets/sounds/slime-song-2.mp3",
+  };
+
+  try {
+    await Promise.all([
+      assetManager.loadImages(imagePaths),
+      assetManager.loadSounds(soundPaths)
+    ]);
+  } catch (e) {
+    console.error("error loading assets", e);
+    return;
+  }
 
   const canvas = document.getElementById('mainCanvas');
   const context = canvas.getContext('2d');
@@ -30,13 +161,13 @@ async function main() {
 
   const iamgeScaleFactor = 2;
 
-  const firstLayer = makeSprite(context, layer1, { x: 0, y: -100 }, iamgeScaleFactor);
-  const secondLayer = makeLayer(context, layer2, { x: 0, y: -100 }, iamgeScaleFactor);
-  const thirdLayer = makeLayer(context, layer3, { x: 0, y: -100 }, iamgeScaleFactor);
-  const forthLayer = makeLayer(context, layer4, { x: 0, y: -100 }, iamgeScaleFactor);
+  const firstLayer = makeBackground(context, assetManager.getImage('layer1'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const secondLayer = makeLayer(context, assetManager.getImage('layer2'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const thirdLayer = makeLayer(context, assetManager.getImage('layer3'), { x: 0, y: -100 }, iamgeScaleFactor);
+  const forthLayer = makeLayer(context, assetManager.getImage('layer4'), { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
-  const playerWidth = 60;
+  const playerWidth = 57;
   const playerHeight = 35;
   let playerPosition = { x: 50, y: 350 };
   let playerVelocity = 0;
@@ -44,13 +175,20 @@ async function main() {
   let isTouchingGround = false;
 
   // Player Sprite config
+  const playerSpriteSheet = assetManager.getImage('playerImage');
   const numberOfPlayerSprites = 7;
-  const playerSpriteMaxHeight = playerImage.height; //128
-  const playerSpriteMaxWidth = playerImage.width / numberOfPlayerSprites; //128
-  const playerSpriteHeight = 35;
-  const playerSpriteWidth = 60;
-  const playerSpriteX = 0;
-  const playerSprite = 0;
+  const playerSpriteMaxHeight = playerSpriteSheet.height;
+  const playerSpriteMaxWidth = playerSpriteSheet.width / numberOfPlayerSprites;
+
+  const animationSpeed = 0.1; // seconds
+
+  const playerAnimation = new SpriteAnimation(
+    playerSpriteSheet,
+    playerSpriteMaxWidth,
+    playerSpriteMaxHeight,
+    numberOfPlayerSprites,
+    animationSpeed // seconds
+  );
 
   let gravity = 500;
   let keys = {};
@@ -61,9 +199,6 @@ async function main() {
   let score = 0;
 
   let gameOver = false;
-
-  const audio = new AudioManager();
-  audio.playMusic();
 
   function inputHandler() {
     window.addEventListener('keydown', function (event) {
@@ -91,6 +226,9 @@ async function main() {
     canvas.addEventListener('touchstart', (event) => {
       event.preventDefault();
       keys['touch'] = true;
+      if (gameOver) {
+        restartGame();
+      }
     });
 
     canvas.addEventListener('touchend', (event) => {
@@ -99,7 +237,7 @@ async function main() {
     });
   }
 
-  const bottomLine = canvas.height - playerHeight - 90;
+  const bottomLine = canvas.height - playerHeight - 85;
 
   function updateState(deltaTime) {
     // apply dynamics
@@ -126,13 +264,16 @@ async function main() {
     checkCollision();
 
     updateObstacles(deltaTime);
+
+    playerAnimation.update(deltaTime);
+    obstacleAnimation.update(deltaTime);
   }
 
   function jump() {
     if (isTouchingGround) {
       playerVelocity = -jumpStrength;
       isTouchingGround = false;
-      audio.playSound('jump');
+      // jump sound
     }
   }
 
@@ -145,21 +286,35 @@ async function main() {
         playerPosition.y <= obstacle.y + obstacleHeight
       ) {
         gameOver = true;
-        audio.stopMusic();
+        // audio.stopMusic();
       }
     });
   }
 
   // Obstacle configuration
-  const obstacleWidth = 50;
+  const obstacleWidth = 30;
   const obstacleHeight = 50;
   const obstableInterval = 5;
   const obstacleVelocity = gameVelocity * 1000;
   let timeElapsedObstacle = 0;
   let obstacles = [];
 
+  // Obstacle Sprite config
+  const numberOfObstacleSprites = 6;
+  const obstacleSpriteMaxWidth = 96;
+  const obstacleSpriteMaxHeight = 96;
+  const obstacleSpriteSheet = assetManager.getImage('obstableImage');
+
+  const obstacleAnimation = new SpriteAnimation(
+    obstacleSpriteSheet,
+    obstacleSpriteMaxWidth,
+    obstacleSpriteMaxHeight,
+    numberOfObstacleSprites,
+    animationSpeed // seconds
+  );
+
   function generateObstacle() {
-    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 90 };
+    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 85 };
     obstacles.push(obstaclePosition);
   }
 
@@ -183,6 +338,7 @@ async function main() {
     context.fillStyle = 'red';
     obstacles.forEach(obstacle => {
       context.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
+      obstacleAnimation.draw(context, obstacle.x - obstacleWidth - 10, obstacle.y - obstacleHeight);
     });
   }
 
@@ -201,7 +357,7 @@ async function main() {
       context.font = "42px Bangers, Arial";
       context.fillText("Game Over", canvas.width / 2, canvas.height / 2);
       context.font = "16px Bangers, Arial";
-      context.fillText("Press 'R' to restart", canvas.width / 2, canvas.height / 2 + 20);
+      context.fillText("Press 'R' or touch to restart", canvas.width / 2, canvas.height / 2 + 20);
     }
   }
 
@@ -217,17 +373,8 @@ async function main() {
     // Player draw
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
-    context.drawImage(
-      playerImage,
-      26,
-      93,
-      playerSpriteWidth,
-      playerSpriteHeight,
-      playerPosition.x,
-      playerPosition.y,
-      playerSpriteWidth,
-      playerSpriteHeight
-    );
+
+    playerAnimation.draw(context, playerPosition.x - playerWidth / 2, playerPosition.y - playerHeight - bottomLine + 90);
 
     drawObstacles();
 
@@ -275,7 +422,7 @@ async function main() {
     score = 0;
     gameOver = false;
     obstacles = [];
-    audio.playMusic();
+    // play music
     gameLoop(performance.now());
   }
 
