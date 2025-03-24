@@ -1,3 +1,5 @@
+import SpriteAnimation from './spriteAnimation.js';
+
 function loadBackground(path) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -165,7 +167,7 @@ async function main() {
   const forthLayer = makeLayer(context, assetManager.getImage('layer4'), { x: 0, y: -100 }, iamgeScaleFactor);
 
   // Player configuration
-  const playerWidth = 60;
+  const playerWidth = 57;
   const playerHeight = 35;
   let playerPosition = { x: 50, y: 350 };
   let playerVelocity = 0;
@@ -173,14 +175,22 @@ async function main() {
   let isTouchingGround = false;
 
   // Player Sprite config
-  const playerImage = assetManager.getImage('playerImage');
+  const playerSpriteSheet = assetManager.getImage('playerImage');
   const numberOfPlayerSprites = 7;
-  const playerSpriteMaxHeight = playerImage.height;
-  const playerSpriteMaxWidth = playerImage.width / numberOfPlayerSprites;
+  const playerSpriteMaxHeight = playerSpriteSheet.height;
+  const playerSpriteMaxWidth = playerSpriteSheet.width / numberOfPlayerSprites;
   const playerSpriteHeight = 35;
   const playerSpriteWidth = 60;
   const playerSpriteX = 0;
   const playerSprite = 0;
+
+  const playerAnimation = new SpriteAnimation(
+    playerSpriteSheet,
+    playerSpriteMaxWidth,
+    playerSpriteMaxHeight,
+    numberOfPlayerSprites,
+    0.1 // seconds
+  );
 
   let gravity = 500;
   let keys = {};
@@ -229,7 +239,7 @@ async function main() {
     });
   }
 
-  const bottomLine = canvas.height - playerHeight - 90;
+  const bottomLine = canvas.height - playerHeight - 85;
 
   function updateState(deltaTime) {
     // apply dynamics
@@ -256,6 +266,8 @@ async function main() {
     checkCollision();
 
     updateObstacles(deltaTime);
+
+    playerAnimation.update(deltaTime);
   }
 
   function jump() {
@@ -289,7 +301,7 @@ async function main() {
   let obstacles = [];
 
   function generateObstacle() {
-    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 90 };
+    const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 85 };
     obstacles.push(obstaclePosition);
   }
 
@@ -347,17 +359,8 @@ async function main() {
     // Player draw
     context.fillStyle = 'blue';
     context.fillRect(playerPosition.x, playerPosition.y, playerWidth, playerHeight);
-    context.drawImage(
-      playerImage,
-      26,
-      93,
-      playerSpriteWidth,
-      playerSpriteHeight,
-      playerPosition.x,
-      playerPosition.y,
-      playerSpriteWidth,
-      playerSpriteHeight
-    );
+
+    playerAnimation.draw(context, playerPosition.x - playerWidth / 2, playerPosition.y - playerHeight - bottomLine + 90);
 
     drawObstacles();
 
