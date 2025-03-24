@@ -179,17 +179,15 @@ async function main() {
   const numberOfPlayerSprites = 7;
   const playerSpriteMaxHeight = playerSpriteSheet.height;
   const playerSpriteMaxWidth = playerSpriteSheet.width / numberOfPlayerSprites;
-  const playerSpriteHeight = 35;
-  const playerSpriteWidth = 60;
-  const playerSpriteX = 0;
-  const playerSprite = 0;
+
+  const animationSpeed = 0.1; // seconds
 
   const playerAnimation = new SpriteAnimation(
     playerSpriteSheet,
     playerSpriteMaxWidth,
     playerSpriteMaxHeight,
     numberOfPlayerSprites,
-    0.1 // seconds
+    animationSpeed // seconds
   );
 
   let gravity = 500;
@@ -268,6 +266,7 @@ async function main() {
     updateObstacles(deltaTime);
 
     playerAnimation.update(deltaTime);
+    obstacleAnimation.update(deltaTime);
   }
 
   function jump() {
@@ -293,12 +292,26 @@ async function main() {
   }
 
   // Obstacle configuration
-  const obstacleWidth = 50;
+  const obstacleWidth = 30;
   const obstacleHeight = 50;
   const obstableInterval = 5;
   const obstacleVelocity = gameVelocity * 1000;
   let timeElapsedObstacle = 0;
   let obstacles = [];
+
+  // Obstacle Sprite config
+  const numberOfObstacleSprites = 6;
+  const obstacleSpriteMaxWidth = 96;
+  const obstacleSpriteMaxHeight = 96;
+  const obstacleSpriteSheet = assetManager.getImage('obstableImage');
+
+  const obstacleAnimation = new SpriteAnimation(
+    obstacleSpriteSheet,
+    obstacleSpriteMaxWidth,
+    obstacleSpriteMaxHeight,
+    numberOfObstacleSprites,
+    animationSpeed // seconds
+  );
 
   function generateObstacle() {
     const obstaclePosition = { x: canvas.width, y: canvas.height - obstacleHeight - 85 };
@@ -325,6 +338,7 @@ async function main() {
     context.fillStyle = 'red';
     obstacles.forEach(obstacle => {
       context.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
+      obstacleAnimation.draw(context, obstacle.x - obstacleWidth - 10, obstacle.y - obstacleHeight);
     });
   }
 
