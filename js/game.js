@@ -2,6 +2,9 @@ class Game {
     constructor() {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
+        canvas.width = 480;
+        canvas.height = 270;
 
         this.score = 0;
         this.isGameOver = false;
@@ -42,6 +45,12 @@ class Game {
         UI.draw();
     }
 
+    updateState(deltaTime) {
+        this.player.update(deltaTime);
+        this.obstacle.updateAll(deltaTime);
+        this.checkCollisions();
+    }
+
     lastTime = 0;
     gameLoop(timeStamp) {
         const deltaTime = timeStamp - lastTime;
@@ -60,7 +69,6 @@ class Game {
         // TODO: Handle game-over logic
     }
 
-    
 
     checkCollisions() {
         this.obstacles.forEach(obstacle => {
@@ -74,4 +82,10 @@ class Game {
             }
         });
     }
+
+    start() {
+        requestAnimationFrame((timeStamp) => this.gameLoop(timeStamp));
+    }
 }
+
+export default Game;
