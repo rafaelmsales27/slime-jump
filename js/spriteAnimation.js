@@ -9,15 +9,6 @@ class SpriteAnimation {
         this.elapsedTime = 0;
     }
 
-    // update(deltaTime) {
-    //   this.elapsedTime += deltaTime;
-    //   if (this.elapsedTime >= this.animationSpeed) {
-    //     this.elapsedTime = 0;
-    //     this.currentFrame = (this.currentFrame + 1) % this.frameCount;
-    //     console.log(this.currentFrame);
-    //   }
-    // }
-
     update(deltaTime) {
         // console.log(`Received deltaTime: ${deltaTime}ms`); 
         this.elapsedTime += deltaTime;
