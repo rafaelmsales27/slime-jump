@@ -1,3 +1,6 @@
+import Obstacle from './Obstacle.js';
+import Player from './Player.js';
+
 class Game {
     constructor() {
         this.canvas = canvas;
@@ -71,7 +74,7 @@ class Game {
 
 
     checkCollisions() {
-        this.obstacles.forEach(obstacle => {
+        this.obstacle.obstacles.forEach(obstacle => {
             if (
                 this.player.x < obstacle.x + obstacle.width &&
                 this.player.x + this.player.width > obstacle.x &&
