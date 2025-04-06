@@ -46,9 +46,7 @@ slime-jump
 ├── /css               # CSS stylesheets
 │   └── style.css      # Main stylesheet
 ├── /js                # JavaScript files
-│   ├── game.js        # Main game logic
-│   ├── utils.js       # Helper functions (collision detection, etc.)
-│   └── controls.js    # Key event handling (jump, duck)
+│   ├── game.js        # Monolith with all logic
 ├── index.html         # Main HTML file
 ├── README.md          # Project description and instructions
 ├── LICENSE            # Open-source license
