@@ -8,8 +8,7 @@
 - ⏫ **Jump Mechanic:** Use the spacebar or tap to jump.  
 - 🌎 **Responsive Design:** Optimized for desktop and mobile devices.  
 - 📊 **Score Tracking:** Keep track of your high score.  
-- 🔄 **Restart Feature:** Restart the game instantly after a game-over.  
-- 🎵 **Optional Sound Effects:** Enhance gameplay with jump and collision sounds.  
+- 🔄 **Restart Feature:** Restart the game instantly after a game-over.   
 
 ## 🛠️ Technologies Used
 
@@ -56,11 +55,12 @@ slime-jump
 
 ## 🔧 Planned Features
 
-- ✅ Dark mode for night-time play  
-- ✅ New types of obstacles  
-- ✅ High-score leaderboard  
-- ✅ Improved mobile controls  
-- ✅ Offline mode (Play without an internet connection)  
+- 🌙 Dark mode for night-time play
+- ⚠️ New types of obstacles
+- 🏆 High-score leaderboard
+- 📱 Improved mobile controls
+- 🌐❌ Offline mode (Play without an internet connection)
+- 🎵 **Optional Sound Effects:** Enhance gameplay with jump and collision sounds. 
 
 ## 🤝 Contributing
 
