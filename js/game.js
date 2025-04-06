@@ -1,17 +1,21 @@
-import Obstacle from './Obstacle.js';
-import Player from './Player.js';
+import { Obstacle } from './Obstacle.js';
+import { Player } from './Player.js';
+import { input } from './InputHandler.js';
+import { ParallaxBackground } from './ParallaxBackground.js';
 
-class Game {
-    constructor() {
+export class Game {
+    constructor(canvas) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        context.imageSmoothingEnabled = false;
+        this.context = canvas.getContext('2d');
+        this.context.imageSmoothingEnabled = false;
         canvas.width = 480;
         canvas.height = 270;
 
         this.score = 0;
         this.isGameOver = false;
         this.keys = {};
+
+        this.gameVelocity = 0.2;
 
         this.player = new Player(
             50, // x
@@ -29,40 +33,90 @@ class Game {
             obstacleSpawnInterval
         );
 
-        this.initEventListeners();
+        this.lastTime = 0;
+
+    
+        this.parallaxBackground = new ParallaxBackground(this.context);
+
+        const background = new Image();
+        background.src = './assets/images/background/1.Background.png';
+
+        const treesBack = new Image();
+        treesBack.src = './assets/images/background/2.Trees_back.png';
+
+        const treesFront = new Image();
+        treesFront.src = './assets/images/background/3.Trees_front.png';
+
+        const ground = new Image();
+        ground.src = './assets/images/background/4.Ground.png';
+
+        this.parallaxBackground.addLayer(
+            background, // sprite
+            0, // initialX
+            1, // scale
+            0 // speed
+        );
+
+        this.parallaxBackground.addLayer(
+            treesBack,
+            0,
+            1,
+            -this.gameVelocity / 4
+        );
+
+        this.parallaxBackground.addLayer(
+            treesFront,
+            0,
+            1,
+            -this.gameVelocity / 2
+        );
+
+        this.parallaxBackground.addLayer(
+            ground,
+            0,
+            1,
+            -this.gameVelocity
+        );
     }
 
     drawElements(deltaTime) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Background draw
-        firstLayer.draw();
-        makeInfiniteScroll(deltaTime, secondLayer, -gameVelocity / 4); // 0.05
-        makeInfiniteScroll(deltaTime, thirdLayer, -gameVelocity / 2); // 0.1
-        makeInfiniteScroll(deltaTime, forthLayer, -gameVelocity); // 0.2
+        this.parallaxBackground.drawAll(deltaTime);
 
-        Player.draw();
+        this.player.draw(this.context);
 
-        Obstacle.drawAll();
+        this.obstacle.draw(this.context);
 
-        UI.draw();
+        // UI.draw();
     }
 
     updateState(deltaTime) {
+        input.update();
         this.player.update(deltaTime);
-        this.obstacle.updateAll(deltaTime);
+        if (input.isKeyPressed(' ')) {
+            this.player.jump();
+        }
+
+        this.parallaxBackground.updateAll(deltaTime);
+
+        this.obstacle.update(deltaTime);
+
         this.checkCollisions();
+
+        if (this.isGameOver && input.isKeyPressed('r')) {
+            this.restartGame();
+        }
     }
 
-    lastTime = 0;
     gameLoop(timeStamp) {
-        const deltaTime = timeStamp - lastTime;
-        lastTime = timeStamp;
-        updateState(deltaTime);
-        drawElements(deltaTime);
+        const deltaTime = timeStamp - this.lastTime;
+        this.lastTime = timeStamp;
+        this.updateState(deltaTime);
+        this.drawElements(deltaTime);
         // drawGrid();
-        if (gameOver) {
-            gameVelocity = 0;
+        if (this.gameOver) {
+            this.gameVelocity = 0;
         } else {
             requestAnimationFrame(gameLoop); // Recursively call gameLoop
         }
@@ -70,6 +124,18 @@ class Game {
 
     gameOver() {
         // TODO: Handle game-over logic
+        this.isGameOver = true;
+        // Stop music and play game over sfx
+    }
+
+    restartGame() {
+        this.isGameOver = false;
+        this.score = 0;
+
+        this.player = new Player(this);
+        this.obstacle = new Obstacle(this);
+        // ... reset other game objects
+        this.start();
     }
 
 
@@ -90,5 +156,3 @@ class Game {
         requestAnimationFrame((timeStamp) => this.gameLoop(timeStamp));
     }
 }
-
-export default Game;

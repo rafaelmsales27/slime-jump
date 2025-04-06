@@ -1,4 +1,4 @@
-class Player {
+export class Player {
 
     constructor(x, y, width, height, velocity, jumpStrength) {
         this.x = x;
@@ -17,20 +17,16 @@ class Player {
         this.velocity += GRAVITY * deltaTime;
 
         // lower boundary
+        const bottomLine = this.height - 100;
         if (this.y > (bottomLine)) {
             this.y = bottomLine;
-            isTouchingGround = true;
+            this.isTouchingGround = true;
             this.velocity = 0;
         }
         // upper boundary
         if (this.y < 0) {
             this.y = 0;
         }
-
-        if (keys['ArrowUp'] || keys[' '] || keys['click'] || keys['Enter'] || keys['touch']) {
-            jump();
-        }
-        checkCollision();
     }
 
     draw(context) {

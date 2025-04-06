@@ -1,39 +1,38 @@
-class Obstacle {
-    static obstacles = [];
-    timeElapsedObstacle;
-
+export class Obstacle {
     constructor(width, height, obstableInterval) {
         this.x;
         this.y;
         this.width = width;
         this.height = height;
         this.obstableInterval = obstableInterval;
+        this.timeElapsedObstacle = 0;
+        this.obstacles = [];
     }
 
-    generateObstacle() {
+    generate() {
         const obstaclePosition = { x: canvas.width, y: canvas.height - this.height - 85 };
-        obstacles.push(obstaclePosition);
+        this.obstacles.push(obstaclePosition);
     }
 
-    updateObstacles(deltaTime) {
-        timeElapsedObstacle += deltaTime;
-        if (timeElapsedObstacle >= this.obstableInterval) {
+    update(deltaTime) {
+        this.timeElapsedObstacle += deltaTime;
+        if (this.timeElapsedObstacle >= this.obstableInterval) {
             generateObstacle();
-            timeElapsedObstacle = 0;
+            this.timeElapsedObstacle = 0;
         }
 
-        obstacles.forEach((obstacle, index) => {
+        this.obstacles.forEach((obstacle, index) => {
             this.x -= obstacleVelocity * deltaTime;
             if (this.x < -this.width) {
-                obstacles.splice(index, 1); // Remove obstacle if it moves off the screen
+                this.obstacles.splice(index, 1); // Remove obstacle if it moves off the screen
                 score++;
             }
         });
     }
 
-    drawObstacles(context) {
+    draw(context) {
         context.fillStyle = 'red';
-        obstacles.forEach(obstacle => {
+        this.obstacles.forEach(obstacle => {
             context.fillRect(this.x, this.y, this.width, this.height);
             // TODO Import obstacle animation
             // obstacleAnimation.draw(context, this.x - this.width - 10, this.y - this.height);
