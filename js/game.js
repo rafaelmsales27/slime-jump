@@ -1,5 +1,3 @@
-import SpriteAnimation from './spriteAnimation.js';
-
 function loadBackground(path) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -127,6 +125,43 @@ const assetManager = {
   }
 };
 
+function createSpriteAnimation(sprite, frameWidth, frameHeight, frameCount, animationSpeed) {
+  return {
+      sprite,
+      frameWidth,
+      frameHeight,
+      frameCount,
+      animationSpeed,
+      currentFrame: 0,
+      elapsedTime: 0,
+      
+      update: function(deltaTime) {
+          this.elapsedTime += deltaTime;
+          if (this.elapsedTime >= this.animationSpeed) {
+              this.elapsedTime -= this.animationSpeed;
+              this.currentFrame = (this.currentFrame + 1) % this.frameCount;
+          }
+      },
+
+      draw: function(context, x, y, scale = 1) {
+          const frameX = this.currentFrame * this.frameWidth;
+          const frameY = 0;
+          context.drawImage(
+              this.sprite,
+              frameX,
+              frameY,
+              this.frameWidth,
+              this.frameHeight,
+              x,
+              y,
+              this.frameWidth * scale,
+              this.frameHeight * scale
+          );
+      }
+  };
+}
+
+
 async function main() {
   const imagePaths = {
     layer1: "./assets/images/background/1.Background.png",
@@ -182,7 +217,7 @@ async function main() {
 
   const animationSpeed = 0.1; // seconds
 
-  const playerAnimation = new SpriteAnimation(
+  const playerAnimation = createSpriteAnimation(
     playerSpriteSheet,
     playerSpriteMaxWidth,
     playerSpriteMaxHeight,
@@ -305,7 +340,7 @@ async function main() {
   const obstacleSpriteMaxHeight = 96;
   const obstacleSpriteSheet = assetManager.getImage('obstableImage');
 
-  const obstacleAnimation = new SpriteAnimation(
+  const obstacleAnimation = createSpriteAnimation(
     obstacleSpriteSheet,
     obstacleSpriteMaxWidth,
     obstacleSpriteMaxHeight,
