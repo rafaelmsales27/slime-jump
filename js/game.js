@@ -115,15 +115,14 @@ export class Game {
         this.updateState(deltaTime);
         this.drawElements(deltaTime);
         // drawGrid();
-        if (this.gameOver) {
-            this.gameVelocity = 0;
-        } else {
-            requestAnimationFrame(gameLoop); // Recursively call gameLoop
+        if (!this.isGameOver) { // Fixed property name
+            requestAnimationFrame((ts) => this.gameLoop(ts)); // Proper binding
         }
     }
 
     gameOver() {
         // TODO: Handle game-over logic
+        this.gameVelocity = 0;
         this.isGameOver = true;
         // Stop music and play game over sfx
     }
